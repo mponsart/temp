@@ -32,7 +32,6 @@
 <body class="min-h-screen flex flex-col bg-monassoLight">
     <header class="w-full flex justify-center pt-10 pb-2">
         <img src="https://www.groupe-speed.cloud/logo.svg" alt="MonAsso" class="h-12">
-        <span class="ml-3 text-monasso text-2xl font-bold self-center tracking-wide">Groupe Speed Cloud</span>
     </header>
     <main class="flex-1 flex items-center justify-center">
         <div class="w-full max-w-5xl mx-auto flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-none bg-white border border-monasso/10">
@@ -45,12 +44,11 @@
             <!-- Déjà client -->
             <section class="flex-1 flex flex-col justify-center items-center bg-splitRight py-16 px-8">
                 <h2 class="text-3xl font-extrabold text-monassoDark mb-4 text-center">Déjà client MonAsso</h2>
-                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Gérez votre facturation ou changez d’offre en toute autonomie.</p>
+                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Accédez à votre espace client et à votre facturation.</p>
                 <div class="flex flex-col gap-4 w-64">
                     @if(env('STRIPE_PORTAL_URL'))
-                    <a href="{{ env('STRIPE_PORTAL_URL') }}" target="_blank" class="bg-white border-2 border-monasso text-monassoDark font-bold py-3 rounded-xl hover:bg-monasso/10 transition text-lg text-center">Gérer ma facturation</a>
+                    <a href="{{ env('STRIPE_PORTAL_URL') }}" target="_blank" class="bg-monasso text-white font-bold py-3 rounded-xl hover:bg-monassoDark transition text-lg text-center">Gérer ma facturation</a>
                     @endif
-                    <a href="mailto:support@groupe-speed.cloud" class="bg-monasso text-white font-bold py-3 rounded-xl hover:bg-monassoDark transition text-lg text-center">Changer mon offre</a>
                 </div>
             </section>
         </div>
