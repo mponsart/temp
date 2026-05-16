@@ -122,25 +122,35 @@ class SubscribeController extends Controller
 
     public function createCheckoutSession(Request $request)
     {
-        $data = $request->validate([
-            'subdomain' => 'required|regex:/^[a-z0-9]{3,32}$/|unique:instances,subdomain',
-            'email' => 'required|email',
-            'association_name' => 'nullable|string|max:255',
-        ]);
+        \Log::info('createCheckoutSession: Début', ['input' => $request->all()]);
+        try {
+            $data = $request->validate([
+                'subdomain' => 'required|regex:/^[a-z0-9]{3,32}$/|unique:instances,subdomain',
+                'email' => 'required|email',
+                'association_name' => 'nullable|string|max:255',
+            ]);
+            \Log::info('createCheckoutSession: Validation OK', ['data' => $data]);
+        } catch (\Exception $e) {
+            \Log::error('createCheckoutSession: Erreur validation', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur de validation : ' . $e->getMessage()], 422);
+        }
 
-        $instance = Instance::create([
-            'subdomain' => $data['subdomain'],
-            'email' => $data['email'],
-            'association_name' => $data['association_name'] ?? null,
-            'status' => 'pending',
-        ]);
+        try {
+            $instance = Instance::create([
+                'subdomain' => $data['subdomain'],
+                'email' => $data['email'],
+                'association_name' => $data['association_name'] ?? null,
+                'status' => 'pending',
+            ]);
+            \Log::info('createCheckoutSession: Instance créée', ['instance_id' => $instance->id]);
+        } catch (\Exception $e) {
+            \Log::error('createCheckoutSession: Erreur création instance', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur lors de la création de l\'instance : ' . $e->getMessage()], 500);
+        }
 
         // Création de la session Stripe Checkout
-        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
         try {
-            /**
-             * Suspendre une instance : crée un .htaccess de redirection dans le dossier utilisateur via cPanel UAPI
-             */
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
                 'mode' => 'subscription',
@@ -157,10 +167,11 @@ class SubscribeController extends Controller
                     'association_name' => $data['association_name'] ?? '',
                 ],
             ]);
+            \Log::info('createCheckoutSession: Session Stripe créée', ['session_id' => $session->id]);
             return response()->json(['url' => $session->url]);
         } catch (\Exception $e) {
-            \Log::error('Stripe error: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur lors de la création de la session Stripe.'], 500);
+            \Log::error('createCheckoutSession: Erreur Stripe', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur lors de la création de la session Stripe : ' . $e->getMessage()], 500);
         }
     }
 }
