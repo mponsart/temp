@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Http;
 
 class SubscribeController extends Controller
+{
 
     /**
      * Suspendre une instance : crée un .htaccess de redirection dans le dossier utilisateur via cPanel UAPI
