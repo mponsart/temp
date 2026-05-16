@@ -1,3 +1,6 @@
+<?php
+
+return [
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
@@ -13,9 +16,6 @@
         'pass' => env('FTP_PASS'),
         'base_path' => env('FTP_BASE_PATH', '/'),
     ],
-<?php
-
-return [
 
     /*
     |--------------------------------------------------------------------------
