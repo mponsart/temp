@@ -25,6 +25,14 @@ class StripeWebhookController extends Controller
                 $instance->status = 'active';
                 $instance->save();
                 $service->deploy($instance);
+                // Stocke les infos en session pour la page de succès
+                session([
+                    'subdomain' => $instance->subdomain,
+                    'email' => $instance->email,
+                    'association_name' => $instance->association_name,
+                    'amount' => isset($data['amount_total']) ? ($data['amount_total'] / 100) . ' €' : null,
+                    'payment_id' => $data['payment_intent'] ?? null,
+                ]);
                 // Envoi de l'email de bienvenue avec gestion d'erreur
                 try {
                     Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));

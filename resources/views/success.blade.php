@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merci pour votre souscription !</title>
+    <title>Votre espace MonAsso est prêt !</title>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,9 +28,17 @@
         <div class="flex justify-center mb-4">
             <img src="https://www.groupe-speed.cloud/logo.svg" alt="MonAsso" class="h-12 drop-shadow-md">
         </div>
-        <h1 class="text-2xl font-extrabold mb-2 text-primary">Merci pour votre souscription !</h1>
-        <p class="text-gray-700 mb-4">Votre paiement a bien été reçu.<br>Votre espace Paheko est en cours de création.<br>
-        Vous recevrez un email dès qu'il sera prêt.</p>
+        <h1 class="text-2xl font-extrabold mb-2 text-primary">Votre paiement est validé !</h1>
+        <p class="text-gray-700 mb-4">Merci, votre paiement a bien été reçu.<br>Votre espace MonAsso est en cours de création.</p>
+        <div class="bg-lavender rounded-xl p-4 mb-4 text-left text-sm">
+            <div class="mb-2"><span class="font-bold text-primary">Sous-domaine :</span> <span class="text-gray-800">{{ session('subdomain') ?? '...' }}.monasso.eu</span></div>
+            <div class="mb-2"><span class="font-bold text-primary">Email :</span> <span class="text-gray-800">{{ session('email') ?? '...' }}</span></div>
+            <div class="mb-2"><span class="font-bold text-primary">Nom de l’association :</span> <span class="text-gray-800">{{ session('association_name') ?? '...' }}</span></div>
+            <div class="mb-2"><span class="font-bold text-primary">Montant :</span> <span class="text-gray-800">{{ session('amount') ?? 'Voir reçu Stripe' }}</span></div>
+            <div><span class="font-bold text-primary">Référence paiement :</span> <span class="text-gray-800">{{ session('payment_id') ?? 'Voir reçu Stripe' }}</span></div>
+        </div>
+        <p class="text-gray-700 mb-4">Votre espace sera prêt dans quelques minutes.<br>Vous recevrez un email avec le lien d’accès dès que l’installation sera finalisée.</p>
+        <p class="text-gray-600 text-xs mb-2">Si vous avez un souci, contactez le support : <a href="mailto:support@groupe-speed.cloud" class="text-primary underline">support@groupe-speed.cloud</a></p>
         <a href="/" class="inline-block mt-4 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow hover:bg-primary/90 transition">Retour à l'accueil</a>
     </div>
 </body>

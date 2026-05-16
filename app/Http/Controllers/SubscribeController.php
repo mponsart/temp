@@ -178,6 +178,13 @@ class SubscribeController extends Controller
                 'status' => 'pending',
             ]);
             \Log::info('createCheckoutSession: Instance créée', ['instance_id' => $instance->id]);
+            // Envoi d’un mail d’attente de paiement
+            try {
+                \Mail::to($instance->email)->send(new \App\Mail\InstanceWaitingPaymentMail($instance));
+                \Log::info('Mail attente paiement envoyé', ['email' => $instance->email]);
+            } catch (\Throwable $e) {
+                \Log::error('Erreur envoi mail attente paiement: ' . $e->getMessage(), ['instance' => $instance->id, 'email' => $instance->email]);
+            }
         } catch (\Exception $e) {
             \Log::error('createCheckoutSession: Erreur création instance', ['error' => $e->getMessage()]);
             return back()->withInput()->with('error', 'Erreur lors de la création de l\'instance : ' . $e->getMessage());
