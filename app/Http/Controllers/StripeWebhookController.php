@@ -54,9 +54,8 @@ class StripeWebhookController extends Controller
             $subscriptionId = $data['id'] ?? null;
             if ($subscriptionId && ($instance = Instance::where('stripe_subscription_id', $subscriptionId)->first())) {
                 $service->delete($instance);
-                $instance->status = 'deleted';
-                $instance->save();
-                Log::info('Instance supprimée: ' . $instance->subdomain);
+                $instance->delete();
+                Log::info('Instance supprimée de la base: ' . $instance->subdomain);
             }
         }
         if ($type === 'invoice.paid') {
