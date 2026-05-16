@@ -51,10 +51,45 @@
         <form method="POST" action="/subscribe/checkout-session" class="space-y-6" autocomplete="off" novalidate>
             @csrf
             <div class="relative">
-                <input type="text" name="subdomain" value="{{ old('subdomain') }}" required pattern="[a-z0-9]{3,32}" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Sous-domaine">
+                <input type="text" name="subdomain" id="subdomain-input" value="{{ old('subdomain') }}" required pattern="[a-z0-9]{3,32}" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Sous-domaine">
                 <label class="absolute left-4 top-2 text-xs text-gray-500 transition-all peer-focus:text-primary peer-focus:top-1 peer-focus:text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 pointer-events-none">Sous-domaine souhaité</label>
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold">.monasso.eu</span>
+                <div id="subdomain-status" class="text-xs mt-1 ml-1 font-semibold"></div>
             </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const input = document.getElementById('subdomain-input');
+                const status = document.getElementById('subdomain-status');
+                let lastValue = '';
+                let timer;
+                input.addEventListener('input', function() {
+                    clearTimeout(timer);
+                    const val = input.value.trim();
+                    if (!val.match(/^[a-z0-9]{3,32}$/)) {
+                        status.textContent = '';
+                        status.className = 'text-xs mt-1 ml-1 font-semibold';
+                        return;
+                    }
+                    timer = setTimeout(() => {
+                        fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(val)}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.available) {
+                                    status.textContent = 'Sous-domaine disponible';
+                                    status.className = 'text-xs mt-1 ml-1 font-semibold text-accent';
+                                } else {
+                                    status.textContent = 'Sous-domaine déjà pris';
+                                    status.className = 'text-xs mt-1 ml-1 font-semibold text-red-600';
+                                }
+                            })
+                            .catch(() => {
+                                status.textContent = '';
+                                status.className = 'text-xs mt-1 ml-1 font-semibold';
+                            });
+                    }, 400);
+                });
+            });
+            </script>
             <div class="relative">
                 <input type="text" name="association_name" value="{{ old('association_name') }}" required class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Nom de l'association">
                 <label class="absolute left-4 top-2 text-xs text-gray-500 transition-all peer-focus:text-primary peer-focus:top-1 peer-focus:text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 pointer-events-none">Nom de l'association</label>
