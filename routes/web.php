@@ -15,3 +15,4 @@ Route::post('/webhook/stripe', [StripeWebhookController::class, 'handle']);
 // Pages de succès et d'annulation Stripe
 Route::view('/subscribe/success', 'success');
 Route::view('/subscribe/cancel', 'cancel');
+Route::get('/subscribe/success', [SubscribeController::class, 'stripeSuccess']);

@@ -217,4 +217,24 @@ class SubscribeController extends Controller
             return back()->withInput()->with('error', 'Erreur Stripe : ' . $e->getMessage());
         }
     }
+
+    public function stripeSuccess(Request $request)
+    {
+        $session_id = $request->get('session_id');
+        if ($session_id) {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+            $session = \Stripe\Checkout\Session::retrieve($session_id);
+            $instanceId = $session->metadata['instance_id'] ?? null;
+            if ($instanceId && ($instance = \App\Models\Instance::find($instanceId))) {
+                session([
+                    'subdomain' => $instance->subdomain,
+                    'email' => $instance->email,
+                    'association_name' => $instance->association_name,
+                    'amount' => isset($session->amount_total) ? ($session->amount_total / 100) . ' €' : null,
+                    'payment_id' => $session->payment_intent ?? null,
+                ]);
+            }
+        }
+        return view('success');
+    }
 }
