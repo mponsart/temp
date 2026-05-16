@@ -202,11 +202,11 @@ class SubscribeController extends Controller
                 ],
             ]);
             \Log::info('createCheckoutSession: Session Stripe créée', ['session_id' => $session->id]);
-            return response()->json(['url' => $session->url]);
+            return redirect()->away($session->url);
         } catch (\Exception $e) {
             \Log::error('createCheckoutSession: Erreur Stripe', ['error' => $e->getMessage()]);
             // Affiche le message d'erreur Stripe exact côté client
-            return response()->json(['error' => $e->getMessage()], 500);
+            return back()->withInput()->with('error', 'Erreur Stripe : ' . $e->getMessage());
         }
     }
 }
