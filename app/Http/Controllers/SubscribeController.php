@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Http;
 
 class SubscribeController extends Controller
 {
@@ -24,38 +25,34 @@ class SubscribeController extends Controller
         $exists = Instance::where('subdomain', $sub)->exists();
 
         // Vérifie si un dossier existe déjà sur le FTP
-        $ftpHost = config('services.ftp.host');
-        $ftpUser = config('services.ftp.user');
-        $ftpPass = config('services.ftp.pass');
-        $ftpBasePath = config('services.ftp.base_path', '/');
+        // Vérification via cPanel UAPI
+        $cpanelUrl = env('CPANEL_API_URL');
+        $cpanelUser = env('CPANEL_API_USER');
+        $cpanelToken = env('CPANEL_API_TOKEN');
+        $usersPath = env('CPANEL_USERS_PATH', '/home/gowo3083/app.monasso.eu/users');
         $folderExists = false;
-        try {
-            if ($ftpHost && $ftpUser && $ftpPass) {
-                $conn = @ftp_connect($ftpHost, 21, 10); // timeout 10s
-                if (!$conn) {
-                    \Log::error('FTP: Impossible de se connecter à ' . $ftpHost);
-                } elseif (!@ftp_login($conn, $ftpUser, $ftpPass)) {
-                    \Log::error('FTP: Identifiants invalides pour ' . $ftpUser . '@' . $ftpHost);
-                    ftp_close($conn);
-                } else {
-                    ftp_pasv($conn, true);
-                    $dirList = @ftp_nlist($conn, $ftpBasePath);
-                    if ($dirList === false) {
-                        \Log::error('FTP: Impossible de lister le dossier ' . $ftpBasePath);
-                    } else {
-                        // Normalise les chemins pour comparer
-                        $dirListNorm = array_map(function($d) use ($ftpBasePath) {
-                            return trim(str_replace($ftpBasePath, '', $d), '/');
-                        }, $dirList);
-                        if (in_array($sub, $dirListNorm)) {
+        if ($cpanelUrl && $cpanelUser && $cpanelToken && $usersPath) {
+            try {
+                $fullPath = rtrim($usersPath, '/') . '/' . $sub;
+                $response = Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->get($cpanelUrl . '/execute/Fileman/list_files', [
+                    'dir' => $usersPath,
+                    'types' => 'dir',
+                ]);
+                if ($response->ok() && isset($response['data'])) {
+                    foreach ($response['data'] as $item) {
+                        if (isset($item['file']) && $item['file'] === $sub && $item['type'] === 'dir') {
                             $folderExists = true;
+                            break;
                         }
                     }
-                    ftp_close($conn);
+                } else {
+                    \Log::error('cPanel UAPI: Erreur de réponse', ['response' => $response->body()]);
                 }
+            } catch (\Throwable $e) {
+                \Log::error('cPanel UAPI: Exception - ' . $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            \Log::error('FTP: Exception - ' . $e->getMessage());
         }
 
         if ($exists || $folderExists) {
