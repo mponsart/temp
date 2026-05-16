@@ -201,7 +201,7 @@ class SubscribeController extends Controller
                     'price' => config('services.stripe.price_id'),
                     'quantity' => 1,
                 ]],
-                'success_url' => config('services.stripe.success_url'),
+                'success_url' => config('services.stripe.success_url') . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => config('services.stripe.cancel_url'),
                 'metadata' => [
                     'instance_id' => $instance->id,
