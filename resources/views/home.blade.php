@@ -18,12 +18,9 @@
                         monassoLight: '#F6F3FF',
                         monassoDark: '#7C3AED',
                         accent: '#22C55E',
-                        splitRight: '#EDE9FE',
+                        splitRight: '#F4F0FF',
                         splitLeft: '#FFFFFF',
                     },
-                    boxShadow: {
-                        'soft': '0 4px 32px 0 rgba(162,89,255,0.10)',
-                    }
                 }
             }
         }
@@ -32,30 +29,31 @@
         html, body, * { font-family: 'Titillium Web', ui-sans-serif, system-ui, sans-serif !important; }
     </style>
 </head>
-<body class="min-h-screen flex items-stretch bg-monassoLight">
-    <div class="absolute top-0 left-0 w-full flex justify-center pt-8 z-20">
-        <img src="https://www.groupe-speed.cloud/logo.svg" alt="MonAsso" class="h-14 drop-shadow-md">
-    </div>
-    <div class="flex flex-1 h-screen pt-28 pb-8">
-        <!-- Split gauche : Nouveau client -->
-        <div class="w-1/2 flex flex-col justify-center items-center bg-splitLeft relative rounded-l-3xl shadow-soft">
-            <div class="relative z-10 flex flex-col items-center w-full max-w-md px-8">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-monasso mb-6 text-center tracking-wide">Nouveau client</h2>
-                <p class="text-gray-700 mb-8 text-center text-lg">Créez votre espace associatif en quelques clics.<br>Paiement sécurisé, activation immédiate.</p>
-                <a href="/subscribe" class="w-full bg-accent text-white font-bold py-3 rounded-2xl hover:bg-accent/90 transition text-lg shadow-lg mb-2 text-center">Continuer</a>
-            </div>
+<body class="min-h-screen flex flex-col bg-monassoLight">
+    <header class="w-full flex justify-center pt-10 pb-2">
+        <img src="https://www.groupe-speed.cloud/logo.svg" alt="MonAsso" class="h-12">
+        <span class="ml-3 text-monasso text-2xl font-bold self-center tracking-wide">Groupe Speed Cloud</span>
+    </header>
+    <main class="flex-1 flex items-center justify-center">
+        <div class="w-full max-w-5xl mx-auto flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-none bg-white border border-monasso/10">
+            <!-- Nouveau client -->
+            <section class="flex-1 flex flex-col justify-center items-center bg-splitLeft py-16 px-8">
+                <h2 class="text-3xl font-extrabold text-monasso mb-4 text-center">Nouveau client</h2>
+                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Créez votre espace associatif en quelques clics.<br>Paiement sécurisé, activation immédiate.</p>
+                <a href="/subscribe" class="w-64 bg-accent text-white font-bold py-3 rounded-xl hover:bg-accent/90 transition text-lg text-center">Continuer</a>
+            </section>
+            <!-- Déjà client -->
+            <section class="flex-1 flex flex-col justify-center items-center bg-splitRight py-16 px-8">
+                <h2 class="text-3xl font-extrabold text-monassoDark mb-4 text-center">Déjà client MonAsso</h2>
+                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Gérez votre facturation ou changez d’offre en toute autonomie.</p>
+                <div class="flex flex-col gap-4 w-64">
+                    @if(env('STRIPE_PORTAL_URL'))
+                    <a href="{{ env('STRIPE_PORTAL_URL') }}" target="_blank" class="bg-white border-2 border-monasso text-monassoDark font-bold py-3 rounded-xl hover:bg-monasso/10 transition text-lg text-center">Gérer ma facturation</a>
+                    @endif
+                    <a href="mailto:support@groupe-speed.cloud" class="bg-monasso text-white font-bold py-3 rounded-xl hover:bg-monassoDark transition text-lg text-center">Changer mon offre</a>
+                </div>
+            </section>
         </div>
-        <!-- Split droite : Déjà client -->
-        <div class="w-1/2 flex flex-col justify-center items-center bg-splitRight relative rounded-r-3xl shadow-soft">
-            <div class="relative z-10 flex flex-col items-center w-full max-w-md px-8">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-monassoDark mb-2 text-center tracking-wide">Déjà client MonAsso</h2>
-                <p class="text-gray-700 mb-8 text-center text-lg">Gérez votre facturation ou changez d’offre en toute autonomie.</p>
-                @if(env('STRIPE_PORTAL_URL'))
-                <a href="{{ env('STRIPE_PORTAL_URL') }}" target="_blank" class="w-full bg-white text-monassoDark font-bold py-3 rounded-2xl hover:bg-monasso/10 transition text-lg shadow-lg mb-3 text-center border-2 border-monasso">Gérer ma facturation</a>
-                @endif
-                <a href="mailto:support@groupe-speed.cloud" class="w-full bg-monasso text-white font-bold py-3 rounded-2xl hover:bg-monassoDark transition text-lg shadow-lg text-center">Changer mon offre</a>
-            </div>
-        </div>
-    </div>
+    </main>
 </body>
 </html>
