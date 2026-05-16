@@ -44,7 +44,8 @@
             <!-- Déjà client -->
             <section class="flex-1 flex flex-col justify-center items-center bg-splitRight py-16 px-8">
                 <h2 class="text-3xl font-extrabold text-monassoDark mb-4 text-center">Déjà client MonAsso</h2>
-                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Accédez à votre espace client et à votre facturation.</p>
+                <p class="text-gray-700 mb-4 text-center text-base max-w-xs font-semibold">Vous avez déjà un espace MonAsso&nbsp;?</p>
+                <p class="text-gray-700 mb-8 text-center text-base max-w-xs">Accédez à votre facturation en un clic&nbsp;:</p>
                 <div class="flex flex-col gap-4 w-64">
                     @if(env('STRIPE_PORTAL_URL'))
                     <a href="{{ env('STRIPE_PORTAL_URL') }}" target="_blank" class="bg-monasso text-white font-bold py-3 rounded-xl hover:bg-monassoDark transition text-lg text-center">Gérer ma facturation</a>
