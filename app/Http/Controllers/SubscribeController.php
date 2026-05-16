@@ -22,7 +22,14 @@ class SubscribeController extends Controller
             return response()->json(['available' => false, 'error' => 'Format invalide']);
         }
         $exists = Instance::where('subdomain', $sub)->exists();
-        return response()->json(['available' => !$exists]);
+
+        // Vérifie si un dossier existe déjà pour ce sous-domaine (adapter le chemin si besoin)
+        $folderExists = is_dir(base_path('demo/' . $sub));
+
+        if ($exists || $folderExists) {
+            return response()->json(['available' => false, 'error' => 'Sous-domaine déjà pris.']);
+        }
+        return response()->json(['available' => true]);
     }
 
     public function createCheckoutSession(Request $request)
