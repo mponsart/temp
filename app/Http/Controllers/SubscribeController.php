@@ -70,7 +70,6 @@ class SubscribeController extends Controller
             }
         }
     }
-{
     public function showForm()
     {
         return view('subscribe');
