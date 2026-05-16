@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\StripeWebhookController;
 
-Route::get('/', [SubscribeController::class, 'showForm']);
+Route::view('/', 'home');
 
 Route::get('/subscribe', [SubscribeController::class, 'showForm']);
 Route::get('/api/check-subdomain', [SubscribeController::class, 'checkSubdomain']);
