@@ -138,6 +138,9 @@ class SubscribeController extends Controller
         // Création de la session Stripe Checkout
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
         try {
+            /**
+             * Suspendre une instance : crée un .htaccess de redirection dans le dossier utilisateur via cPanel UAPI
+             */
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
                 'mode' => 'subscription',
