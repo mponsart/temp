@@ -23,8 +23,24 @@ class SubscribeController extends Controller
         }
         $exists = Instance::where('subdomain', $sub)->exists();
 
-        // Vérifie si un dossier existe déjà pour ce sous-domaine (adapter le chemin si besoin)
-        $folderExists = is_dir(base_path('demo/' . $sub));
+        // Vérifie si un dossier existe déjà sur le FTP
+        $ftpHost = config('services.ftp.host');
+        $ftpUser = config('services.ftp.user');
+        $ftpPass = config('services.ftp.pass');
+        $ftpBasePath = config('services.ftp.base_path', '/');
+        $folderExists = false;
+        if ($ftpHost && $ftpUser && $ftpPass) {
+            $conn = @ftp_connect($ftpHost);
+            if ($conn && @ftp_login($conn, $ftpUser, $ftpPass)) {
+                $dirList = @ftp_nlist($conn, $ftpBasePath);
+                if ($dirList && in_array($ftpBasePath . $sub, $dirList)) {
+                    $folderExists = true;
+                } elseif ($dirList && in_array($sub, array_map(function($d) use ($ftpBasePath) { return str_replace($ftpBasePath, '', $d); }, $dirList))) {
+                    $folderExists = true;
+                }
+                ftp_close($conn);
+            }
+        }
 
         if ($exists || $folderExists) {
             return response()->json(['available' => false, 'error' => 'Sous-domaine déjà pris.']);
