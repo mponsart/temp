@@ -20,9 +20,11 @@ class StripeWebhookController extends Controller
         if ($type === 'checkout.session.completed') {
             $instanceId = $data['metadata']['instance_id'] ?? null;
             if ($instanceId && ($instance = Instance::find($instanceId))) {
-                $service->deploy($instance);
+                // Sauvegarde l'ID de la souscription Stripe
+                $instance->stripe_subscription_id = $data['subscription'] ?? null;
                 $instance->status = 'active';
                 $instance->save();
+                $service->deploy($instance);
                 // Envoi de l'email de bienvenue avec gestion d'erreur
                 try {
                     Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
