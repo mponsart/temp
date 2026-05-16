@@ -23,9 +23,20 @@ class StripeWebhookController extends Controller
                 $service->deploy($instance);
                 $instance->status = 'active';
                 $instance->save();
-                // Envoi de l'email de bienvenue
-                Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
-                Log::info('Instance activée, déployée et email envoyé: ' . $instance->subdomain);
+                // Envoi de l'email de bienvenue avec gestion d'erreur
+                try {
+                    Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
+                    Log::info('Instance activée, déployée et email envoyé: ' . $instance->subdomain);
+                } catch (\Throwable $e) {
+                    Log::error('Erreur envoi mail bienvenue: ' . $e->getMessage(), ['instance' => $instance->id, 'email' => $instance->email]);
+                    // Optionnel : réessayer une fois
+                    try {
+                        Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
+                        Log::info('Réessai envoi mail bienvenue réussi: ' . $instance->subdomain);
+                    } catch (\Throwable $e2) {
+                        Log::critical('Echec définitif envoi mail bienvenue: ' . $e2->getMessage(), ['instance' => $instance->id, 'email' => $instance->email]);
+                    }
+                }
             }
         }
         if ($type === 'invoice.payment_failed') {
