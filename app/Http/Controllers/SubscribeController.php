@@ -171,7 +171,8 @@ class SubscribeController extends Controller
             return response()->json(['url' => $session->url]);
         } catch (\Exception $e) {
             \Log::error('createCheckoutSession: Erreur Stripe', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Erreur lors de la création de la session Stripe : ' . $e->getMessage()], 500);
+            // Affiche le message d'erreur Stripe exact côté client
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
