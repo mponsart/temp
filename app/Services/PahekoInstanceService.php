@@ -17,6 +17,12 @@ class PahekoInstanceService
 
         if ($cpanelUrl && $cpanelUser && $cpanelToken) {
             try {
+                Log::info('[DEPLOY] Début création dossier via UAPI', [
+                    'cpanelUrl' => $cpanelUrl,
+                    'cpanelUser' => $cpanelUser,
+                    'usersPath' => $usersPath,
+                    'targetDir' => $targetDir,
+                ]);
                 // Création du dossier via UAPI
                 $response = \Illuminate\Support\Facades\Http::withHeaders([
                     'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
@@ -24,6 +30,7 @@ class PahekoInstanceService
                     'path' => $targetDir,
                     'permissions' => '0755',
                 ]);
+                Log::info('[DEPLOY] Réponse mkdir', ['status' => $response->status(), 'body' => $response->body()]);
                 if (!$response->ok()) {
                     Log::error('cPanel UAPI: Erreur création dossier', ['response' => $response->body()]);
                     return false;
@@ -31,6 +38,7 @@ class PahekoInstanceService
                 // Création d'un index.html minimal via UAPI
                 $indexContent = "<html><head><title>Bienvenue sur MonAsso</title></head><body><h1>Espace prêt pour " . htmlspecialchars($instance->association_name) . "</h1></body></html>";
                 $indexPath = $targetDir . '/index.html';
+                Log::info('[DEPLOY] Début création index.html', ['indexPath' => $indexPath]);
                 $response2 = \Illuminate\Support\Facades\Http::withHeaders([
                     'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
                 ])->post($cpanelUrl . '/execute/Fileman/save_file', [
@@ -38,6 +46,7 @@ class PahekoInstanceService
                     'data' => $indexContent,
                     'encoding' => 'utf-8',
                 ]);
+                Log::info('[DEPLOY] Réponse save_file', ['status' => $response2->status(), 'body' => $response2->body()]);
                 if (!$response2->ok()) {
                     Log::error('cPanel UAPI: Erreur création index.html', ['response' => $response2->body()]);
                     return false;
@@ -49,7 +58,12 @@ class PahekoInstanceService
                 return false;
             }
         } else {
-            Log::error('cPanel UAPI: Variables d\'environnement manquantes');
+            Log::error('cPanel UAPI: Variables d\'environnement manquantes', [
+                'cpanelUrl' => $cpanelUrl,
+                'cpanelUser' => $cpanelUser,
+                'cpanelToken' => $cpanelToken,
+                'usersPath' => $usersPath,
+            ]);
             return false;
         }
     }
