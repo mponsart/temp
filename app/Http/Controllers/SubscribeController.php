@@ -29,17 +29,33 @@ class SubscribeController extends Controller
         $ftpPass = config('services.ftp.pass');
         $ftpBasePath = config('services.ftp.base_path', '/');
         $folderExists = false;
-        if ($ftpHost && $ftpUser && $ftpPass) {
-            $conn = @ftp_connect($ftpHost);
-            if ($conn && @ftp_login($conn, $ftpUser, $ftpPass)) {
-                $dirList = @ftp_nlist($conn, $ftpBasePath);
-                if ($dirList && in_array($ftpBasePath . $sub, $dirList)) {
-                    $folderExists = true;
-                } elseif ($dirList && in_array($sub, array_map(function($d) use ($ftpBasePath) { return str_replace($ftpBasePath, '', $d); }, $dirList))) {
-                    $folderExists = true;
+        try {
+            if ($ftpHost && $ftpUser && $ftpPass) {
+                $conn = @ftp_connect($ftpHost, 21, 10); // timeout 10s
+                if (!$conn) {
+                    \Log::error('FTP: Impossible de se connecter à ' . $ftpHost);
+                } elseif (!@ftp_login($conn, $ftpUser, $ftpPass)) {
+                    \Log::error('FTP: Identifiants invalides pour ' . $ftpUser . '@' . $ftpHost);
+                    ftp_close($conn);
+                } else {
+                    ftp_pasv($conn, true);
+                    $dirList = @ftp_nlist($conn, $ftpBasePath);
+                    if ($dirList === false) {
+                        \Log::error('FTP: Impossible de lister le dossier ' . $ftpBasePath);
+                    } else {
+                        // Normalise les chemins pour comparer
+                        $dirListNorm = array_map(function($d) use ($ftpBasePath) {
+                            return trim(str_replace($ftpBasePath, '', $d), '/');
+                        }, $dirList);
+                        if (in_array($sub, $dirListNorm)) {
+                            $folderExists = true;
+                        }
+                    }
+                    ftp_close($conn);
                 }
-                ftp_close($conn);
             }
+        } catch (\Throwable $e) {
+            \Log::error('FTP: Exception - ' . $e->getMessage());
         }
 
         if ($exists || $folderExists) {
