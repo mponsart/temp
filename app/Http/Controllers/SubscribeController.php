@@ -123,16 +123,50 @@ class SubscribeController extends Controller
     public function createCheckoutSession(Request $request)
     {
         \Log::info('createCheckoutSession: Début', ['input' => $request->all()]);
+
         try {
             $data = $request->validate([
-                'subdomain' => 'required|regex:/^[a-z0-9]{3,32}$/|unique:instances,subdomain',
+                'subdomain' => 'required|regex:/^[a-z0-9]{3,32}$/',
                 'email' => 'required|email',
                 'association_name' => 'nullable|string|max:255',
             ]);
             \Log::info('createCheckoutSession: Validation OK', ['data' => $data]);
         } catch (\Exception $e) {
             \Log::error('createCheckoutSession: Erreur validation', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Erreur de validation : ' . $e->getMessage()], 422);
+            return back()->withInput()->with('error', 'Erreur de validation : ' . $e->getMessage());
+        }
+
+        // Vérification sous-domaine déjà pris (en base ou sur le FTP/cPanel)
+        $sub = strtolower($data['subdomain']);
+        $exists = \App\Models\Instance::where('subdomain', $sub)->exists();
+        // Vérification via cPanel UAPI (même logique que checkSubdomain)
+        $cpanelUrl = env('CPANEL_API_URL');
+        $cpanelUser = env('CPANEL_API_USER');
+        $cpanelToken = env('CPANEL_API_TOKEN');
+        $usersPath = env('CPANEL_USERS_PATH', '/home/gowo3083/app.monasso.eu/users');
+        $folderExists = false;
+        if ($cpanelUrl && $cpanelUser && $cpanelToken && $usersPath) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->get($cpanelUrl . '/execute/Fileman/list_files', [
+                    'dir' => $usersPath,
+                    'types' => 'dir',
+                ]);
+                if ($response->ok() && isset($response['data'])) {
+                    foreach ($response['data'] as $item) {
+                        if (isset($item['file']) && $item['file'] === $sub && $item['type'] === 'dir') {
+                            $folderExists = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error('cPanel UAPI: Exception - ' . $e->getMessage());
+            }
+        }
+        if ($exists || $folderExists) {
+            return back()->withInput()->with('error', 'Sous-domaine déjà pris.');
         }
 
         try {
@@ -145,7 +179,7 @@ class SubscribeController extends Controller
             \Log::info('createCheckoutSession: Instance créée', ['instance_id' => $instance->id]);
         } catch (\Exception $e) {
             \Log::error('createCheckoutSession: Erreur création instance', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Erreur lors de la création de l\'instance : ' . $e->getMessage()], 500);
+            return back()->withInput()->with('error', 'Erreur lors de la création de l\'instance : ' . $e->getMessage());
         }
 
         // Création de la session Stripe Checkout

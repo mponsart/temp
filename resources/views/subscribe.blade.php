@@ -51,16 +51,16 @@
         <form method="POST" action="/subscribe/checkout-session" class="space-y-6" autocomplete="off" novalidate>
             @csrf
             <div class="relative">
-                <input type="text" name="subdomain" required pattern="[a-z0-9]{3,32}" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Sous-domaine">
+                <input type="text" name="subdomain" value="{{ old('subdomain') }}" required pattern="[a-z0-9]{3,32}" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Sous-domaine">
                 <label class="absolute left-4 top-2 text-xs text-gray-500 transition-all peer-focus:text-primary peer-focus:top-1 peer-focus:text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 pointer-events-none">Sous-domaine souhaité</label>
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold">.monasso.eu</span>
             </div>
             <div class="relative">
-                <input type="text" name="association_name" required class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Nom de l'association">
+                <input type="text" name="association_name" value="{{ old('association_name') }}" required class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Nom de l'association">
                 <label class="absolute left-4 top-2 text-xs text-gray-500 transition-all peer-focus:text-primary peer-focus:top-1 peer-focus:text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 pointer-events-none">Nom de l'association</label>
             </div>
             <div class="relative">
-                <input type="email" name="email" required autocomplete="email" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Votre email">
+                <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email" class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition placeholder-transparent bg-lavender/60" placeholder="Votre email">
                 <label class="absolute left-4 top-2 text-xs text-gray-500 transition-all peer-focus:text-primary peer-focus:top-1 peer-focus:text-xs peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 pointer-events-none">Votre email</label>
             </div>
             <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition flex items-center justify-center shadow-lg text-lg">
