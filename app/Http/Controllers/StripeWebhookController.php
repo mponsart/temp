@@ -33,20 +33,7 @@ class StripeWebhookController extends Controller
                     'amount' => isset($data['amount_total']) ? ($data['amount_total'] / 100) . ' €' : null,
                     'payment_id' => $data['payment_intent'] ?? null,
                 ]);
-                // Envoi de l'email de bienvenue avec gestion d'erreur
-                try {
-                    Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
-                    Log::info('Instance activée, déployée et email envoyé: ' . $instance->subdomain);
-                } catch (\Throwable $e) {
-                    Log::error('Erreur envoi mail bienvenue: ' . $e->getMessage(), ['instance' => $instance->id, 'email' => $instance->email]);
-                    // Optionnel : réessayer une fois
-                    try {
-                        Mail::to($instance->email)->send(new InstanceWelcomeMail($instance));
-                        Log::info('Réessai envoi mail bienvenue réussi: ' . $instance->subdomain);
-                    } catch (\Throwable $e2) {
-                        Log::critical('Echec définitif envoi mail bienvenue: ' . $e2->getMessage(), ['instance' => $instance->id, 'email' => $instance->email]);
-                    }
-                }
+                // Plus d’envoi de mail de bienvenue ici
             }
         }
         if ($type === 'invoice.payment_failed') {
