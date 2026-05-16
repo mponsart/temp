@@ -10,6 +10,65 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Http;
 
 class SubscribeController extends Controller
+
+    /**
+     * Suspendre une instance : crée un .htaccess de redirection dans le dossier utilisateur via cPanel UAPI
+     */
+    public function suspendInstance($subdomain)
+    {
+        $cpanelUrl = env('CPANEL_API_URL');
+        $cpanelUser = env('CPANEL_API_USER');
+        $cpanelToken = env('CPANEL_API_TOKEN');
+        $usersPath = env('CPANEL_USERS_PATH', '/home/gowo3083/app.monasso.eu/users');
+        $targetDir = rtrim($usersPath, '/') . '/' . $subdomain;
+        $htaccessPath = $targetDir . '/.htaccess';
+        $content = "RewriteEngine On\nRewriteRule ^(.*)$ https://monasso.eu/errors/suspended-instance [R=302,L]";
+
+        if ($cpanelUrl && $cpanelUser && $cpanelToken) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->post($cpanelUrl . '/execute/Fileman/save_file', [
+                    'file' => $htaccessPath,
+                    'data' => $content,
+                    'encoding' => 'utf-8',
+                ]);
+                if (!$response->ok()) {
+                    \Log::error('cPanel UAPI: Erreur lors de la suspension (.htaccess)', ['response' => $response->body()]);
+                }
+            } catch (\Throwable $e) {
+                \Log::error('cPanel UAPI: Exception suspension - ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Réactiver une instance : supprime le .htaccess de redirection via cPanel UAPI
+     */
+    public function unsuspendInstance($subdomain)
+    {
+        $cpanelUrl = env('CPANEL_API_URL');
+        $cpanelUser = env('CPANEL_API_USER');
+        $cpanelToken = env('CPANEL_API_TOKEN');
+        $usersPath = env('CPANEL_USERS_PATH', '/home/gowo3083/app.monasso.eu/users');
+        $targetDir = rtrim($usersPath, '/') . '/' . $subdomain;
+        $htaccessPath = $targetDir . '/.htaccess';
+
+        if ($cpanelUrl && $cpanelUser && $cpanelToken) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->post($cpanelUrl . '/execute/Fileman/file_delete', [
+                    'files' => json_encode([$htaccessPath]),
+                ]);
+                if (!$response->ok()) {
+                    \Log::error('cPanel UAPI: Erreur lors de la réactivation (suppression .htaccess)', ['response' => $response->body()]);
+                }
+            } catch (\Throwable $e) {
+                \Log::error('cPanel UAPI: Exception réactivation - ' . $e->getMessage());
+            }
+        }
+    }
 {
     public function showForm()
     {
