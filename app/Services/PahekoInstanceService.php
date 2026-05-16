@@ -8,38 +8,50 @@ class PahekoInstanceService
 {
     public function deploy(Instance $instance)
     {
-        // Paramètres FTP à configurer dans .env
-        $ftpHost = config('services.ftp.host');
-        $ftpUser = config('services.ftp.user');
-        $ftpPass = config('services.ftp.pass');
-        $ftpBasePath = config('services.ftp.base_path', '/');
+        $cpanelUrl = env('CPANEL_API_URL');
+        $cpanelUser = env('CPANEL_API_USER');
+        $cpanelToken = env('CPANEL_API_TOKEN');
+        $usersPath = env('CPANEL_USERS_PATH', '/home/gowo3083/app.monasso.eu/users');
         $subdomain = $instance->subdomain;
-        $remotePath = rtrim($ftpBasePath, '/') . '/' . $subdomain;
+        $targetDir = rtrim($usersPath, '/') . '/' . $subdomain;
 
-        // Connexion FTP
-        $conn = ftp_connect($ftpHost);
-        if (!$conn) {
-            Log::error('FTP: Impossible de se connecter à ' . $ftpHost);
+        if ($cpanelUrl && $cpanelUser && $cpanelToken) {
+            try {
+                // Création du dossier via UAPI
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->post($cpanelUrl . '/execute/Fileman/mkdir', [
+                    'path' => $targetDir,
+                    'permissions' => '0755',
+                ]);
+                if (!$response->ok()) {
+                    Log::error('cPanel UAPI: Erreur création dossier', ['response' => $response->body()]);
+                    return false;
+                }
+                // Création d'un index.html minimal via UAPI
+                $indexContent = "<html><head><title>Bienvenue sur MonAsso</title></head><body><h1>Espace prêt pour " . htmlspecialchars($instance->association_name) . "</h1></body></html>";
+                $indexPath = $targetDir . '/index.html';
+                $response2 = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'cpanel ' . $cpanelUser . ':' . $cpanelToken,
+                ])->post($cpanelUrl . '/execute/Fileman/save_file', [
+                    'file' => $indexPath,
+                    'data' => $indexContent,
+                    'encoding' => 'utf-8',
+                ]);
+                if (!$response2->ok()) {
+                    Log::error('cPanel UAPI: Erreur création index.html', ['response' => $response2->body()]);
+                    return false;
+                }
+                Log::info('cPanel UAPI: Instance déployée pour ' . $subdomain);
+                return true;
+            } catch (\Throwable $e) {
+                Log::error('cPanel UAPI: Exception déploiement - ' . $e->getMessage());
+                return false;
+            }
+        } else {
+            Log::error('cPanel UAPI: Variables d\'environnement manquantes');
             return false;
         }
-        if (!ftp_login($conn, $ftpUser, $ftpPass)) {
-            Log::error('FTP: Authentification échouée');
-            ftp_close($conn);
-            return false;
-        }
-        ftp_pasv($conn, true);
-        // Création du dossier
-        if (!@ftp_mkdir($conn, $remotePath)) {
-            Log::warning('FTP: Dossier déjà existant ou erreur de création pour ' . $remotePath);
-        }
-        // Déploiement du template Paheko (à adapter selon ton archive ou structure)
-        // Exemple: upload d'un index.html minimal
-        $localFile = base_path('resources/views/welcome.blade.php');
-        $remoteFile = $remotePath . '/index.html';
-        ftp_put($conn, $remoteFile, $localFile, FTP_ASCII);
-        ftp_close($conn);
-        Log::info('FTP: Instance déployée pour ' . $subdomain);
-        return true;
     }
 
     public function suspend(Instance $instance)
