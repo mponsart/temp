@@ -19,6 +19,9 @@
         <div class="flex flex-col gap-4">
             <a href="/login" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition text-lg">Je suis client</a>
             <a href="/subscribe" class="w-full bg-accent text-white font-bold py-3 rounded-xl hover:bg-accent/90 transition text-lg">Nouveau client</a>
+            @if(env('STRIPE_PORTAL_URL'))
+            <a href="{{ env('STRIPE_PORTAL_URL') }}" class="w-full bg-gray-700 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition text-lg" target="_blank">Gérer ma facturation</a>
+            @endif
         </div>
     </div>
 </body>
