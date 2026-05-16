@@ -11,6 +11,7 @@ use App\Mail\InstanceWelcomeMail;
 class StripeWebhookController extends Controller
 {
     public function handle(Request $request)
+        \Log::info('[WEBHOOK] Stripe reçu', ['payload' => $request->all()]);
     {
         $event = $request->all();
         $type = $event['type'] ?? null;
