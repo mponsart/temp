@@ -44,11 +44,9 @@ if ($action === 'test') {
 
 // Sauvegarde configuration
 if ($action === 'update' && !empty($user->admin)) {
-    $templatePath = GETPOST('PAHEKO_TEMPLATE_PATH', 'alpha');
     $instancesPath = GETPOST('PAHEKO_INSTANCES_PATH', 'alpha');
     $autoProvisioning = GETPOST('PAHEKO_AUTO_PROVISIONING', 'int');
 
-    dolibarr_set_const($db, 'PAHEKO_TEMPLATE_PATH', $templatePath, 'chaine', 0, '', $conf->entity);
     dolibarr_set_const($db, 'PAHEKO_INSTANCES_PATH', $instancesPath, 'chaine', 0, '', $conf->entity);
     dolibarr_set_const($db, 'PAHEKO_AUTO_PROVISIONING', $autoProvisioning, 'chaine', 0, '', $conf->entity);
 
@@ -72,13 +70,6 @@ print '<tr class="liste_titre">';
 print '<td>'.$langs->trans('Parameter').'</td>';
 print '<td>'.$langs->trans('Value').'</td>';
 print '<td>'.$langs->trans('Description').'</td>';
-print '</tr>';
-
-// Template path
-print '<tr class="oddeven">';
-print '<td><label for="PAHEKO_TEMPLATE_PATH">'.$langs->trans('PAHEKO_TEMPLATE_PATH').'</label></td>';
-print '<td><input type="text" name="PAHEKO_TEMPLATE_PATH" id="PAHEKO_TEMPLATE_PATH" value="'.getDolGlobalString('PAHEKO_TEMPLATE_PATH').'" class="minwidth400"></td>';
-print '<td>'.$langs->trans('PAHEKO_TEMPLATE_PATH_Desc').'</td>';
 print '</tr>';
 
 // Instances path

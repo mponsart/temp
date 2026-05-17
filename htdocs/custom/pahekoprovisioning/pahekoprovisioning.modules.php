@@ -56,14 +56,6 @@ class modPahekoProvisioning extends DolibarrModules
         // Constantes du module
         $this->const = array(
             0 => array(
-                'PAHEKO_TEMPLATE_PATH',
-                'chaine',
-                '/home/user/paheko-template',
-                'Chemin du template Paheko',
-                0,
-                0
-            ),
-            1 => array(
                 'PAHEKO_INSTANCES_PATH',
                 'chaine',
                 '/home/user/paheko-clients',
@@ -71,7 +63,7 @@ class modPahekoProvisioning extends DolibarrModules
                 0,
                 0
             ),
-            2 => array(
+            1 => array(
                 'PAHEKO_AUTO_PROVISIONING',
                 'chaine',
                 '1',

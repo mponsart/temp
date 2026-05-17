@@ -19,11 +19,6 @@ class PahekoProvisioningService
     private $db;
 
     /**
-     * @var string Chemin du template
-     */
-    private $templatePath;
-
-    /**
      * @var string Chemin des instances
      */
     private $instancesPath;
@@ -36,7 +31,6 @@ class PahekoProvisioningService
     public function __construct($db)
     {
         $this->db = $db;
-        $this->templatePath = getDolGlobalString('PAHEKO_TEMPLATE_PATH', '/home/user/paheko-template');
         $this->instancesPath = getDolGlobalString('PAHEKO_INSTANCES_PATH', '/home/user/paheko-clients');
     }
 
@@ -79,13 +73,6 @@ class PahekoProvisioningService
         $instanceName = 'client_'.$socid.'_'.dol_print_date(dol_now(), '%Y%m%d%H%M%S');
         $folderPath = rtrim($this->instancesPath, '/').'/'.sanitize_file_name($instanceName);
 
-        // Vérifier chemin template
-        if (!is_dir($this->templatePath)) {
-            $result['message'] = 'Template non trouvé: '.$this->templatePath;
-            dol_syslog('PahekoProvisioning::createInstance Template non trouvé', LOG_ERR);
-            return $result;
-        }
-
         // Créer dossier instance
         if (!mkdir($folderPath, 0755, true)) {
             $result['message'] = 'Échec création dossier: '.$folderPath;
@@ -93,20 +80,10 @@ class PahekoProvisioningService
             return $result;
         }
 
-        // Copier template
-        $copyResult = $this->copyTemplate($this->templatePath, $folderPath);
-        if (!$copyResult) {
-            $result['message'] = 'Échec copie template';
-            return $result;
-        }
-
-        // Créer config.local.php
-        $configContent = $this->generateConfigLocal($soc, $folderPath);
-        $configPath = $folderPath.'/documents/conf/config.local.php';
-        if (!dol_mkdir(dirname($configPath))) {
-            dol_mkdir($folderPath.'/documents/conf');
-        }
-        file_put_contents($configPath, $configContent);
+        // Créer structure de dossiers vide
+        dol_mkdir($folderPath.'/data');
+        dol_mkdir($folderPath.'/www');
+        dol_mkdir($folderPath.'/logs');
 
         // Sauvegarder en BDD
         $instanceId = $this->saveInstance($socid, $instanceName, $folderPath);
@@ -325,79 +302,7 @@ class PahekoProvisioningService
         return $result;
     }
 
-    /**
-     * Copie récursive du template
-     * 
-     * @param string $src Source
-     * @param string $dst Destination
-     * @return bool
-     */
-    private function copyTemplate($src, $dst)
-    {
-        if (!is_dir($src)) {
-            return false;
-        }
 
-        if (!dol_mkdir($dst)) {
-            return false;
-        }
-
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($src, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        foreach ($iterator as $file) {
-            $dstPath = str_replace($src, $dst, $file->getPathname());
-
-            if ($file->isDir()) {
-                dol_mkdir($dstPath);
-            } else {
-                copy($file->getPathname(), $dstPath);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Génère config.local.php
-     * 
-     * @param Societe $soc Tiers Dolibarr
-     * @param string $folderPath Chemin instance
-     * @return string Contenu config
-     */
-    private function generateConfigLocal($soc, $folderPath)
-    {
-        $domain = !empty($soc->url) ? $soc->url : 'client-'.$soc->id.'.local';
-        
-        $config = "<?php\n";
-        $config .= "// Configuration générée automatiquement par Dolibarr\n";
-        $config .= "// Tiers: ".$soc->name." (ID: ".$soc->id.")\n";
-        $config .= "// Date: ".dol_print_date(dol_now(), '%Y-%m-%d %H:%M:%S')."\n\n";
-        
-        $config .= "\$dolibarr_main_url_root = 'https://".$domain."';\n";
-        $config .= "\$dolibarr_main_document_root = '".$folderPath."';\n";
-        $config .= "\$dolibarr_main_url_root_alt = '/custom';\n";
-        $config .= "\$dolibarr_main_document_root_alt = '".$folderPath."/custom';\n";
-        $config .= "\$dolibarr_main_data_root = '".$folderPath."/documents';\n";
-        $config .= "\$dolibarr_main_db_host = 'localhost';\n";
-        $config .= "\$dolibarr_main_db_user = 'paheko_".$soc->id."';\n";
-        $config .= "\$dolibarr_main_db_pass = '".generateRandomPassword(16)."';\n";
-        $config .= "\$dolibarr_main_db_name = 'paheko_".$soc->id."';\n";
-        $config .= "\$dolibarr_main_db_prefix = 'llx_';\n";
-        $config .= "\$dolibarr_main_db_type = 'mysqli';\n";
-        $config .= "\$dolibarr_main_db_character_set = 'utf8mb4';\n";
-        $config .= "\$dolibarr_main_db_collation = 'utf8mb4_unicode_ci';\n";
-        $config .= "\$dolibarr_main_authentication = 'dolibarr';\n";
-        $config .= "\$dolibarr_main_prod = 'on';\n";
-        $config .= "\$dolibarr_main_force_https = 1;\n";
-        $config .= "\$dolibarr_main_restrict_os_commands = 'mysqldump, mysql, pg_dump, pgrestore';\n";
-        $config .= "\$dolibarr_nocsrfcheck = 0;\n";
-        $config .= "\$dolibarr_main_instance_unique_id = 'paheko_".$soc->id."_".dol_now()."';\n";
-        
-        return $config;
-    }
 
     /**
      * Sauvegarde instance en BDD
@@ -616,18 +521,15 @@ class PahekoProvisioningService
     {
         $result = array('success' => true, 'messages' => array());
 
-        // Test template path
-        if (!is_dir($this->templatePath)) {
-            $result['success'] = false;
-            $result['messages'][] = 'Template non trouvé: '.$this->templatePath;
-        } else {
-            $result['messages'][] = 'Template OK: '.$this->templatePath;
-        }
-
         // Test instances path
-        if (!is_writable($this->instancesPath)) {
-            $result['success'] = false;
-            $result['messages'][] = 'Instances path non accessible en écriture: '.$this->instancesPath;
+        if (!is_writable($this->instancesPath) && !is_dir($this->instancesPath)) {
+            // Try to create it
+            if (!mkdir($this->instancesPath, 0755, true)) {
+                $result['success'] = false;
+                $result['messages'][] = 'Instances path non accessible en écriture: '.$this->instancesPath;
+            } else {
+                $result['messages'][] = 'Instances path créé: '.$this->instancesPath;
+            }
         } else {
             $result['messages'][] = 'Instances path OK: '.$this->instancesPath;
         }
@@ -636,11 +538,6 @@ class PahekoProvisioningService
         if (!function_exists('mkdir')) {
             $result['success'] = false;
             $result['messages'][] = 'Fonction mkdir() non disponible';
-        }
-
-        if (!function_exists('copy')) {
-            $result['success'] = false;
-            $result['messages'][] = 'Fonction copy() non disponible';
         }
 
         return $result;

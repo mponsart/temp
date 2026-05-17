@@ -17,12 +17,10 @@ $langs = array(
     'Configuration' => 'Configuration',
     
     // Parameters
-    'PAHEKO_TEMPLATE_PATH' => 'Chemin du template Paheko',
-    'PAHEKO_TEMPLATE_PATH_Desc' => 'Chemin absolu vers le dossier template Paheko (ex: /home/user/paheko-template)',
     'PAHEKO_INSTANCES_PATH' => 'Chemin des instances',
-    'PAHEKO_INSTANCES_PATH_Desc' => 'Chemin absolu où stocker les instances clients (ex: /home/user/paheko-clients)',
+    'PAHEKO_INSTANCES_PATH_Desc' => 'Chemin absolu où créer les dossiers clients (ex: /home/user/paheko-clients)',
     'PAHEKO_AUTO_PROVISIONING' => 'Provisioning automatique',
-    'PAHEKO_AUTO_PROVISIONING_Desc' => 'Activer la création automatique d\'instances lors du paiement des factures',
+    'PAHEKO_AUTO_PROVISIONING_Desc' => 'Activer la création automatique de dossiers lors du paiement des factures',
     
     // Actions
     'Save' => 'Enregistrer',
