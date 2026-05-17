@@ -54,6 +54,31 @@ class InterfacePahekoProvisioning extends DolibarrTriggers
     }
 
     /**
+     * Vérifie si un tiers a un contrat actif
+     * 
+     * @param int $socid ID du tiers
+     * @return bool
+     */
+    private function hasActiveContract($socid)
+    {
+        global $db;
+        
+        $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."contrat";
+        $sql .= " WHERE fk_soc = ".$socid;
+        $sql .= " AND fk_statut = 2"; // 2 = Contrat actif
+        
+        $resql = $db->query($sql);
+        if (!$resql) {
+            return false;
+        }
+        
+        $hasActive = ($db->num_rows($resql) > 0);
+        $db->free($resql);
+        
+        return $hasActive;
+    }
+
+    /**
      * Fonction appelée après paiement facture
      * 
      * @param Facture $facture Facture Dolibarr
@@ -79,10 +104,82 @@ class InterfacePahekoProvisioning extends DolibarrTriggers
         $service = new PahekoProvisioningService($db);
 
         switch ($action) {
+            case 'CONTRACT_ACTIVATE':
+                // Contrat activé -> créer instance
+                if ($object instanceof Contrat) {
+                    $socid = $object->fk_soc;
+                    
+                    // Vérifier si produit configuré correspond
+                    $configuredProductRef = getDolGlobalString('PAHEKO_PRODUCT_REF');
+                    if (!empty($configuredProductRef)) {
+                        $hasPahekoProduct = false;
+                        foreach ($object->lines as $line) {
+                            if (!empty($line->fk_product)) {
+                                $prod = new Product($db);
+                                $prod->fetch($line->fk_product);
+                                if ($prod->ref === $configuredProductRef) {
+                                    $hasPahekoProduct = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!$hasPahekoProduct) {
+                            dol_syslog('PahekoProvisioning::runTrigger Contrat sans produit Paheko, skip');
+                            return 0;
+                        }
+                    }
+                    
+                    dol_syslog('PahekoProvisioning::runTrigger Contrat activé, socid='.$socid);
+                    
+                    $result = $service->createInstance($socid);
+                    if ($result['success']) {
+                        $this->setTMsg('Instance Paheko créée avec succès');
+                    } else {
+                        $this->setErrorMsg('Erreur création instance: '.$result['message']);
+                        return -1;
+                    }
+                }
+                break;
+
+            case 'CONTRACT_CLOSE':
+                // Contrat résilié/terminé -> suspendre instance
+                if ($object instanceof Contrat) {
+                    $socid = $object->fk_soc;
+                    dol_syslog('PahekoProvisioning::runTrigger Contrat résilié, socid='.$socid);
+                    
+                    $result = $service->suspendInstance($socid);
+                    if (!$result['success']) {
+                        $this->setErrorMsg('Erreur suspension instance: '.$result['message']);
+                        return -1;
+                    }
+                }
+                break;
+
+            case 'CONTRACT_DELETE':
+                // Contrat supprimé -> supprimer instance
+                if ($object instanceof Contrat) {
+                    $socid = $object->fk_soc;
+                    dol_syslog('PahekoProvisioning::runTrigger Contrat supprimé, socid='.$socid);
+                    
+                    $result = $service->deleteInstance($socid);
+                    if (!$result['success']) {
+                        $this->setErrorMsg('Erreur suppression instance: '.$result['message']);
+                        return -1;
+                    }
+                }
+                break;
+
             case 'BILLING_INVOICE_PAID':
-                // Facture payée -> créer instance
+                // Facture payée -> vérifier si contrat actif avant de créer
                 if ($object instanceof Facture) {
                     $socid = $object->fk_soc;
+                    
+                    // Vérifier s'il y a un contrat actif pour ce tiers
+                    $hasActiveContract = $this->hasActiveContract($socid);
+                    if (!$hasActiveContract) {
+                        dol_syslog('PahekoProvisioning::runTrigger Pas de contrat actif, skip');
+                        return 0;
+                    }
                     
                     // Vérifier si produit configuré correspond
                     $configuredProductRef = getDolGlobalString('PAHEKO_PRODUCT_REF');
@@ -100,7 +197,7 @@ class InterfacePahekoProvisioning extends DolibarrTriggers
                         }
                     }
                     
-                    dol_syslog('PahekoProvisioning::runTrigger Facture payée, socid='.$socid);
+                    dol_syslog('PahekoProvisioning::runTrigger Facture payée + contrat actif, socid='.$socid);
                     
                     $result = $service->createInstance($socid);
                     if ($result['success']) {
