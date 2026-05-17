@@ -83,6 +83,23 @@ class InterfacePahekoProvisioning extends DolibarrTriggers
                 // Facture payée -> créer instance
                 if ($object instanceof Facture) {
                     $socid = $object->fk_soc;
+                    
+                    // Vérifier si produit configuré correspond
+                    $configuredProductRef = getDolGlobalString('PAHEKO_PRODUCT_REF');
+                    if (!empty($configuredProductRef)) {
+                        $hasPahekoProduct = false;
+                        foreach ($object->lines as $line) {
+                            if ($line->ref === $configuredProductRef || $line->product_ref === $configuredProductRef) {
+                                $hasPahekoProduct = true;
+                                break;
+                            }
+                        }
+                        if (!$hasPahekoProduct) {
+                            dol_syslog('PahekoProvisioning::runTrigger Facture sans produit Paheko, skip');
+                            return 0;
+                        }
+                    }
+                    
                     dol_syslog('PahekoProvisioning::runTrigger Facture payée, socid='.$socid);
                     
                     $result = $service->createInstance($socid);

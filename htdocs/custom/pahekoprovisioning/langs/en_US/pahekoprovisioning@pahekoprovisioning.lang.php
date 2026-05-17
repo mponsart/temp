@@ -21,6 +21,8 @@ $langs = array(
     'PAHEKO_INSTANCES_PATH_Desc' => 'Absolute path where to create client folders (e.g. /home/user/paheko-clients)',
     'PAHEKO_AUTO_PROVISIONING' => 'Auto provisioning',
     'PAHEKO_AUTO_PROVISIONING_Desc' => 'Enable automatic folder creation when invoices are paid',
+    'PAHEKO_PRODUCT_REF' => 'Product reference',
+    'PAHEKO_PRODUCT_REF_Desc' => 'Dolibarr product reference that triggers provisioning (leave empty for all invoices)',
     
     // Actions
     'Save' => 'Save',

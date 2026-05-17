@@ -21,6 +21,8 @@ $langs = array(
     'PAHEKO_INSTANCES_PATH_Desc' => 'Chemin absolu où créer les dossiers clients (ex: /home/user/paheko-clients)',
     'PAHEKO_AUTO_PROVISIONING' => 'Provisioning automatique',
     'PAHEKO_AUTO_PROVISIONING_Desc' => 'Activer la création automatique de dossiers lors du paiement des factures',
+    'PAHEKO_PRODUCT_REF' => 'Référence produit',
+    'PAHEKO_PRODUCT_REF_Desc' => 'Référence du produit Dolibarr qui déclenche le provisioning (laisser vide pour toutes factures)',
     
     // Actions
     'Save' => 'Enregistrer',

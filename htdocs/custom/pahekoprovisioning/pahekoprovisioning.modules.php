@@ -70,6 +70,14 @@ class modPahekoProvisioning extends DolibarrModules
                 'Activer le provisioning automatique',
                 0,
                 0
+            ),
+            2 => array(
+                'PAHEKO_PRODUCT_REF',
+                'chaine',
+                '',
+                'Référence du produit Paheko (optionnel)',
+                0,
+                0
             )
         );
 

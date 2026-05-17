@@ -46,9 +46,11 @@ if ($action === 'test') {
 if ($action === 'update' && !empty($user->admin)) {
     $instancesPath = GETPOST('PAHEKO_INSTANCES_PATH', 'alpha');
     $autoProvisioning = GETPOST('PAHEKO_AUTO_PROVISIONING', 'int');
+    $productRef = GETPOST('PAHEKO_PRODUCT_REF', 'alpha');
 
     dolibarr_set_const($db, 'PAHEKO_INSTANCES_PATH', $instancesPath, 'chaine', 0, '', $conf->entity);
     dolibarr_set_const($db, 'PAHEKO_AUTO_PROVISIONING', $autoProvisioning, 'chaine', 0, '', $conf->entity);
+    dolibarr_set_const($db, 'PAHEKO_PRODUCT_REF', $productRef, 'chaine', 0, '', $conf->entity);
 
     setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
 }
@@ -77,6 +79,13 @@ print '<tr class="oddeven">';
 print '<td><label for="PAHEKO_INSTANCES_PATH">'.$langs->trans('PAHEKO_INSTANCES_PATH').'</label></td>';
 print '<td><input type="text" name="PAHEKO_INSTANCES_PATH" id="PAHEKO_INSTANCES_PATH" value="'.getDolGlobalString('PAHEKO_INSTANCES_PATH').'" class="minwidth400"></td>';
 print '<td>'.$langs->trans('PAHEKO_INSTANCES_PATH_Desc').'</td>';
+print '</tr>';
+
+// Product ref
+print '<tr class="oddeven">';
+print '<td><label for="PAHEKO_PRODUCT_REF">'.$langs->trans('PAHEKO_PRODUCT_REF').'</label></td>';
+print '<td><input type="text" name="PAHEKO_PRODUCT_REF" id="PAHEKO_PRODUCT_REF" value="'.getDolGlobalString('PAHEKO_PRODUCT_REF').'" class="minwidth200" placeholder="PAHEKO-INSTANCE"></td>';
+print '<td>'.$langs->trans('PAHEKO_PRODUCT_REF_Desc').'</td>';
 print '</tr>';
 
 // Auto provisioning
