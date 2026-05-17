@@ -1,0 +1,10 @@
+# Git ignore for Dolibarr module
+*.log
+*.cache
+*.tmp
+.DS_Store
+Thumbs.db
+config.local.php
+*.swp
+*.swo
+*~
